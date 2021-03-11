@@ -1,0 +1,17 @@
+version: '3'
+services:
+  pix-keyword-manager-db:
+    image: postgres:9.6
+    volumes:
+      - postgres-volume1:/var/lib/postgresql/data
+      - ./scripts.sql:/docker-entrypoint-initdb.d/scripts.sql
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=pix_keyword_manager_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - MAX_CONNECTIONS=300
+
+volumes:
+  postgres-volume1:

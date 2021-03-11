@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "br.com.zup";
+option java_outer_classname = "PixKeyword";
+option objc_class_prefix = "HLW";
+
+package br.com.zup;
+
+service PixKeyWordService {
+  rpc ramdomKeyWordRegister (PixRamdomKeyWordRequest) returns (PixRamdomKeyWordResponse) {}
+  rpc ramdomKeyWordRemove   (PixRamdomKeyWordRequest) returns (PixRamdomKeyWordResponse) {}
+  rpc cpfKeyWordRegister   (PixCpfWordRequest) returns (PixCpfWordResponse) {}
+  rpc cpfKeyWordRemove     (PixCpfWordRequest) returns (PixCpfWordResponse) {}
+  rpc phoneKeyWordRegister (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
+  rpc phoneKeyWordRenive   (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
+  rpc emailKeyWordRegister (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
+  rpc emailKeyWordRemove   (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
+
+}
+
+message PixRamdomKeyWordRequest {
+  string ramdomKeyWord = 1;
+}
+
+message PixRamdomKeyWordResponse {
+  string message = 1;
+}
+message PixCpfWordRequest {
+  string cpfKeyWord = 1;
+}
+message PixCpfWordResponse {
+  string message = 1;
+}
+message PixPhoneKeyWordRequest {
+  string phoneKeyWord = 1;
+}
+
+message PixPhoneKeyWordResponse {
+  string message =1;
+}
+
+message PixEmailKeyWordRequest {
+  string emailKeyWord = 1;
+}
+
+message PixEmailKeyWordResponse {
+  string message =1;
+}

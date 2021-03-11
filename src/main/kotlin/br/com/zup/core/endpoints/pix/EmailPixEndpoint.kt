@@ -13,7 +13,7 @@ class EmailPixEndpoint() :PixKeyWordServiceGrpc.PixKeyWordServiceImplBase(){
 
     private val logger = LoggerFactory.getLogger(EmailPixEndpoint::class.java)
 
-    override fun emailKeyWordRegister(request: PixEmailKeyWordRequest?, responseObserver: StreamObserver<PixEmailKeyWordResponse>?,    ) :PixEmailKeyWordResponse{
+    override fun emailKeyWordRegister(request: PixEmailKeyWordRequest?, responseObserver: StreamObserver<PixEmailKeyWordResponse>?,    ) {
 
 
 //        val emailObject:EmailPix = EmailPix(email = request?.emailKeyWord.toString())
@@ -32,7 +32,7 @@ class EmailPixEndpoint() :PixKeyWordServiceGrpc.PixKeyWordServiceImplBase(){
 
         responseObserver?.onCompleted()
 
-        return PixEmailKeyWordResponse.getDefaultInstance()
+
     }
 
     override fun emailKeyWordRemove(request: PixEmailKeyWordRequest?, responseObserver: StreamObserver<PixEmailKeyWordResponse>?, ) {

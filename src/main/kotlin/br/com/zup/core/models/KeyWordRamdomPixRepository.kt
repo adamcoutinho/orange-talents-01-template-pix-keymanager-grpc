@@ -10,4 +10,7 @@ interface KeyWordRamdomPixRepository :CrudRepository<KeyWordRamdomPix,Long>{
     @Executable
     fun find(keyword:String):KeyWordRamdomPix
 
+    @Executable
+    fun existsByKeyword(keyword: String?):Boolean
+
 }

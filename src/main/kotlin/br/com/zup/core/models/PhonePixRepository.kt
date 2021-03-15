@@ -9,4 +9,7 @@ interface PhonePixRepository :CrudRepository<PhonePix,Long> {
     @Executable
     fun find(phone: String?): PhonePix
 
+    @Executable
+    fun existsByPhone(phone: String?):Boolean
+
 }

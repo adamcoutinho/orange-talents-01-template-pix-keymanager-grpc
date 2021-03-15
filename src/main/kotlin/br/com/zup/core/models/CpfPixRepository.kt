@@ -9,4 +9,7 @@ interface CpfPixRepository :CrudRepository<CpfPix, Long> {
     @Executable
     fun find(cpf:String):CpfPix
 
+    @Executable
+    fun existsByCpf(cpf:String):Boolean
+
 }

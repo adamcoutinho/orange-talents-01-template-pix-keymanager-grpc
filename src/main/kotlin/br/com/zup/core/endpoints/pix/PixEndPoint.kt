@@ -66,7 +66,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         } else {
             val e = Status
                 .INVALID_ARGUMENT
-                .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES")
+                .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES.")
                 .asRuntimeException()
             responseObserver!!.onError(e)
             responseObserver.onCompleted()
@@ -81,7 +81,19 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         if (request!!.keyWord.length == LIMIT_SIZE_KEY_WORD_RAMDOM) {
             val e = Status
                 .INVALID_ARGUMENT
-                .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES")
+                .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES.")
+                .asRuntimeException()
+            responseObserver!!.onError(e)
+            responseObserver.onCompleted()
+            existError = true
+        }
+
+        val existKeyWordRamdomPix = this.keyWordRamdomPixRepository.existsByKeyword(keyword = request!!.keyWord)
+//
+        if(existKeyWordRamdomPix.not()){
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("CHAVE ALEATÓRIO NÃO EXISTE.")
                 .asRuntimeException()
             responseObserver!!.onError(e)
             responseObserver.onCompleted()
@@ -105,11 +117,21 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
     override fun cpfKeyWordRegister(request: PixCpfWordRequest?,responseObserver: StreamObserver<PixCpfWordResponse>?, ) {
 
-        val existError = validationCpfKeyWord(request, responseObserver)
+        var existError = validationCpfKeyWord(request, responseObserver)
+
+        val existCpf = cpfPixRepository.existsByCpf(cpf =  request!!.cpfKeyWord)
+
+        if(existCpf){
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("cpf já existe.")
+                .asRuntimeException()
+            responseObserver!!.onError(e)
+            existError = true
+        }
 
         if (existError.not()) {
             val cpfPix = CpfPix(cpf = request!!.cpfKeyWord)
-
             cpfPixRepository.save(cpfPix)
 
             val cpfWordResponse = PixCpfWordResponse.newBuilder()
@@ -126,7 +148,19 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     }
 
     override fun cpfKeyWordRemove(request: PixCpfWordRequest?, responseObserver: StreamObserver<PixCpfWordResponse>?) {
-        val existError = validationCpfKeyWord(request, responseObserver)
+        var existError = validationCpfKeyWord(request, responseObserver)
+
+        val existCpf = cpfPixRepository.existsByCpf(cpf =  request!!.cpfKeyWord)
+
+        if(existCpf.not()){
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("não existe cpf.")
+                .asRuntimeException()
+            responseObserver!!.onError(e)
+            existError = true
+        }
+
         if (existError.not()) {
             val cpfObject = cpfPixRepository.find(cpf = request!!.cpfKeyWord)
 
@@ -153,6 +187,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
             responseObserver?.onError(e)
             existError = true
         }
+
         if (request.cpfKeyWord.matches("^[0-9]{11}\$".toRegex()).not()) {
             val e = Status
                 .INVALID_ARGUMENT
@@ -166,7 +201,18 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     }
 
     override fun phoneKeyWordRegister(request: PixPhoneKeyWordRequest?,responseObserver: StreamObserver<PixPhoneKeyWordResponse>?, ) {
-        val existError = validationPhoneKeyWord(request, responseObserver)
+        var existError = validationPhoneKeyWord(request, responseObserver)
+
+        val existPhone = phoneRepository.existsByPhone(phone = request!!.phoneKeyWord)
+
+        if(existPhone){
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("Número de contato já cadastrado.")
+                .asRuntimeException()
+            responseObserver?.onError(e)
+            existError = true
+        }
 
         if (existError.not()) {
             val phoneObject = PhonePix(phone = request!!.phoneKeyWord)
@@ -188,7 +234,17 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
     override fun phoneKeyWordRemove(request: PixPhoneKeyWordRequest?, responseObserver: StreamObserver<PixPhoneKeyWordResponse>?,  ) {
 
-        val existError = validationPhoneKeyWord(request, responseObserver)
+        var existError = validationPhoneKeyWord(request, responseObserver)
+
+        val existPhone  = phoneRepository.existsByPhone(phone = request!!.phoneKeyWord)
+        if(existPhone.not()){
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("Número de contato não existe.")
+                .asRuntimeException()
+            responseObserver?.onError(e)
+            existError = true
+        }
 
         if (existError.not()) {
             val phoneObject = phoneRepository.find(phone = request!!.phoneKeyWord)
@@ -233,11 +289,21 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
         var existError = validationEmailKeyWord(request, responseObserver)
 
+        val existEmail = emailPixRepository.existsByEmail(email =  request!!.emailKeyWord)
+
+        if(existEmail) {
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("Email já foi cadastrado.")
+                .asRuntimeException()
+            responseObserver!!.onError(e)
+
+            existError = true
+        }
+
         if (existError.not()) {
+
             val emailObject = EmailPix(email = request!!.emailKeyWord.toString())
-
-
-
 
             this.emailPixRepository.save(emailObject)
 
@@ -245,17 +311,31 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 .newBuilder()
                 .setMessage("${emailObject.id}")
                 .build()
+
             responseObserver!!.onNext(emailKeyWordResponse)
+
             responseObserver.onCompleted()
 
             logger.info("{KEY_WORD_EMAIL} -> GENERATED")
         }
     }
 
-    override fun emailKeyWordRemove(request: PixEmailKeyWordRequest?,responseObserver: StreamObserver<PixEmailKeyWordResponse>?,
-    ) {
+    override fun emailKeyWordRemove(request: PixEmailKeyWordRequest?,responseObserver: StreamObserver<PixEmailKeyWordResponse>?,  ) {
 
-        val existError = validationEmailKeyWord(request, responseObserver)
+        var existError = validationEmailKeyWord(request, responseObserver)
+
+        val existEmail = emailPixRepository.existsByEmail(email =  request!!.emailKeyWord)
+
+        if(existEmail.not()) {
+            val e = Status
+                .INVALID_ARGUMENT
+                .withDescription("Email não existe.")
+                .asRuntimeException()
+            responseObserver!!.onError(e)
+
+            existError = true
+        }
+
 
         if (existError.not()) {
 
@@ -282,8 +362,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 .INVALID_ARGUMENT
                 .withDescription("Informe um email.")
                 .asRuntimeException()
-            responseObserver?.onError(e)
-
+            responseObserver!!.onError(e)
             existError = true
         }
 
@@ -293,7 +372,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 .INVALID_ARGUMENT
                 .withDescription("Informe um email valido.")
                 .asRuntimeException()
-            responseObserver?.onError(e)
+            responseObserver!!.onError(e)
             existError = true
         }
         return existError

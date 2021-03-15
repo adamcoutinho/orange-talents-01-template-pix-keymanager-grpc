@@ -8,8 +8,9 @@ import io.micronaut.data.repository.CrudRepository
 interface EmailPixRepository:CrudRepository<EmailPix,Long> {
 
     @Executable
-    fun find(email:String?):EmailPix
+    fun find(email:String?): EmailPix
 
-    fun findExistEmail(email: String?):Boolean
+    @Executable
+    fun existsByEmail(email: String): Boolean
 
 }

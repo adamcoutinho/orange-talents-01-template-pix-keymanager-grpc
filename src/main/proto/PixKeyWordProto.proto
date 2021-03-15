@@ -9,19 +9,23 @@ package br.com.zup;
 
 service PixKeyWordService {
   rpc ramdomKeyWordRegister (PixRamdomKeyWordRequest) returns (PixRamdomKeyWordResponse) {}
-  rpc ramdomKeyWordRemove   (PixRamdomKeyWordRequest) returns (PixRamdomKeyWordResponse) {}
+  rpc ramdomKeyWordRemove   (PixRamdomKeyWordDeleteRequest) returns (PixRamdomKeyWordDeleteResponse) {}
   rpc cpfKeyWordRegister   (PixCpfWordRequest) returns (PixCpfWordResponse) {}
   rpc cpfKeyWordRemove     (PixCpfWordRequest) returns (PixCpfWordResponse) {}
   rpc phoneKeyWordRegister (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
-  rpc phoneKeyWordRenive   (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
+  rpc phoneKeyWordRemove   (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
   rpc emailKeyWordRegister (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
   rpc emailKeyWordRemove   (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
 
 }
 
-message PixRamdomKeyWordRequest {
-  string ramdomKeyWord = 1;
+message PixRamdomKeyWordDeleteRequest {
+  string keyWord  = 1;
 }
+message  PixRamdomKeyWordDeleteResponse {
+  string message = 1;
+}
+message PixRamdomKeyWordRequest {}
 
 message PixRamdomKeyWordResponse {
   string message = 1;

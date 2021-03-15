@@ -5,11 +5,9 @@ import io.micronaut.data.annotation.Repository
 import io.micronaut.data.repository.CrudRepository
 
 @Repository
-interface EmailPixRepository:CrudRepository<EmailPix,Long> {
+interface KeyWordRamdomPixRepository :CrudRepository<KeyWordRamdomPix,Long>{
 
     @Executable
-    fun find(email:String?):EmailPix
-
-    fun findExistEmail(email: String?):Boolean
+    fun find(keyword:String):KeyWordRamdomPix
 
 }

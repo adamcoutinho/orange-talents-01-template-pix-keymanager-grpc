@@ -1,5 +1,10 @@
 package br.com.zup.core.endpoints.pix
 
+import am.ik.yavi.builder.ValidatorBuilder
+import am.ik.yavi.builder.konstraint
+import am.ik.yavi.core.ConstraintViolations
+import am.ik.yavi.core.ConstraintViolationsException
+import am.ik.yavi.core.Validator
 import br.com.zup.PixCpfWordRequest
 import br.com.zup.PixCpfWordResponse
 import br.com.zup.PixEmailKeyWordRequest
@@ -22,12 +27,13 @@ import br.com.zup.core.models.PhonePix
 import br.com.zup.core.models.PhonePixRepository
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
-import io.micronaut.http.client.exceptions.HttpClientException
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.lang.RuntimeException
+import java.util.function.Function
 import javax.inject.Inject
 import javax.inject.Singleton
+import javax.validation.ConstraintViolationException
 
 @Singleton
 class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
@@ -60,13 +66,31 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     override fun ramdomKeyWordRegister(request: PixRamdomKeyWordRequest?, responseObserver: StreamObserver<PixRamdomKeyWordResponse>?, ) {
         try {
 
-            val keyWordRamdom =UUID.randomUUID().toString()
+            val keyWordRamdom =""
+//            val keyWordRamdom =UUID.randomUUID().toString()
+
 
             if (keyWordRamdom.length <= LIMIT_SIZE_KEY_WORD_RAMDOM) {
 
                 val dataClientResponse =  this.accountsClient.findAccountByIdClient(request!!.idInternal,getTypeAccount(request))
 
                 val keyWordRamdomObject = KeyWordRamdomPix(keyword = keyWordRamdom, idInternal = dataClientResponse.body()!!.titular.id ,type = dataClientResponse.body()!!.tipo)
+
+
+                val validator = ValidatorBuilder
+                    .of<KeyWordRamdomPix>()
+                    .konstraint(KeyWordRamdomPix::keyword)
+                    {
+                        notBlank().message("informe a chave.")
+                    }.build()
+
+
+                validator.validate(keyWordRamdomObject)
+
+
+
+
+
 
                 this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
 
@@ -88,13 +112,15 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 responseObserver!!.onError(e)
 
             }
-        }catch ( e:HttpClientException) {
+        } catch (errorConstraintViolation:ConstraintViolationException){
             val e = Status
-                .INTERNAL
-                .withDescription("ERROR HTTP")
+                .INVALID_ARGUMENT
+                .withDescription(errorConstraintViolation.localizedMessage)
                 .asRuntimeException()
             responseObserver!!.onError(e)
-        } catch (e: HttpClientResponseException){
+        }
+
+        catch (e: HttpClientResponseException){
             val errorGrpc = Status
                 .INTERNAL
                 .withDescription(e.localizedMessage)
@@ -102,15 +128,13 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
             responseObserver!!.onError(errorGrpc)
         } catch (e:Exception){
             val errorGrpc = Status
-                .INTERNAL
-                .withDescription(e.localizedMessage)
+                .NOT_FOUND
+                .withDescription("Chave não encontrada.")
                 .asRuntimeException()
             responseObserver!!.onError(errorGrpc)
         }
 
     }
-
-
 
 
     override fun ramdomKeyWordRemove(request: PixRamdomKeyWordDeleteRequest?,responseObserver: StreamObserver<PixRamdomKeyWordDeleteResponse>?,  ) {
@@ -127,7 +151,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         }
 
         val existKeyWordRamdomPix = this.keyWordRamdomPixRepository.existsByKeyword(keyword = request!!.keyWord)
-//
+
         if(existKeyWordRamdomPix.not()){
             val e = Status
                 .INVALID_ARGUMENT
@@ -228,7 +252,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         if (request.cpfKeyWord.matches("^[0-9]{11}\$".toRegex()).not()) {
             val e = Status
                 .INVALID_ARGUMENT
-                .withDescription("Informe um email valido.")
+                .withDescription("Informe um cpf válido.")
                 .asRuntimeException()
             responseObserver?.onError(e)
             existError = true

@@ -13,9 +13,14 @@ import javax.validation.constraints.Size
 @Table(name = "key_word_ramdom_pix")
 class KeyWordRamdomPix(
     @field:NotBlank(message = "informe a chave ramdômica")
-    @field:Size(max = 77,message = "tamanho máximo da chave é 77 caracateres.")
-     val keyword: String,
+    @field:Size(max = 77, message = "tamanho máximo da chave é 77 caracateres.")
+    val keyword: String,
+    val type: String,
+    val idInternal: String,
 ) : Pix {
+
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequence_key_word_ramdom_pix")
     @SequenceGenerator(name = "sequence_key_word_ramdom_pix", sequenceName = "sq_key_word_ramdom_pix")

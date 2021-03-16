@@ -11,6 +11,7 @@ import br.com.zup.PixRamdomKeyWordDeleteRequest
 import br.com.zup.PixRamdomKeyWordDeleteResponse
 import br.com.zup.PixRamdomKeyWordRequest
 import br.com.zup.PixRamdomKeyWordResponse
+import br.com.zup.core.clients.AccountsClient
 import br.com.zup.core.models.CpfPix
 import br.com.zup.core.models.CpfPixRepository
 import br.com.zup.core.models.EmailPix
@@ -21,6 +22,8 @@ import br.com.zup.core.models.PhonePix
 import br.com.zup.core.models.PhonePixRepository
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import io.micronaut.http.client.exceptions.HttpClientException
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.inject.Inject
@@ -43,48 +46,83 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     @Inject
     private lateinit var cpfPixRepository: CpfPixRepository;
 
+    @Inject
+    private lateinit var accountsClient: AccountsClient
+
     private val LIMIT_SIZE_KEY_WORD_RAMDOM: Int = 77
 
+    private fun getTypeAccount(request: PixRamdomKeyWordRequest?) = when (request!!.type.number) {
+        0 -> "CONTA_CORRENTE"
+        1 -> "CONTA_POUPANCA"
+        else -> throw Exception("Type Account Unknown")
+    }
+
     override fun ramdomKeyWordRegister(request: PixRamdomKeyWordRequest?, responseObserver: StreamObserver<PixRamdomKeyWordResponse>?, ) {
-        var existError: Boolean = false
+        try {
 
-        val keyWordRamdom = KeyWordRamdomPix(keyword = UUID.randomUUID().toString())
+            val keyWordRamdom =UUID.randomUUID().toString()
 
-        if (keyWordRamdom.keyword.length <= LIMIT_SIZE_KEY_WORD_RAMDOM) {
-            this.keyWordRamdomPixRepository.save(keyWordRamdom)
+            if (keyWordRamdom.length <= LIMIT_SIZE_KEY_WORD_RAMDOM) {
 
-            val keyWordRamdomResponse = PixRamdomKeyWordResponse
-                .newBuilder()
-                .setMessage(keyWordRamdom.keyword)
-                .build()
-            responseObserver!!.onNext(keyWordRamdomResponse)
+                val dataClientResponse =  this.accountsClient.findAccountByIdClient(request!!.idInternal,getTypeAccount(request))
 
-            responseObserver.onCompleted()
+                val keyWordRamdomObject = KeyWordRamdomPix(keyword = keyWordRamdom, idInternal = dataClientResponse.body()!!.titular.id ,type = dataClientResponse.body()!!.tipo)
 
-            logger.info("{KEY_WORD_RAMDOM} -> GENERATED")
+                this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
 
-        } else {
+                val keyWordRamdomResponse = PixRamdomKeyWordResponse
+                    .newBuilder()
+                    .setMessage(keyWordRamdomObject.keyword)
+                    .build()
+                responseObserver!!.onNext(keyWordRamdomResponse)
+
+                responseObserver.onCompleted()
+
+                logger.info("{KEY_WORD_RAMDOM} -> GENERATED")
+
+            } else {
+                val e = Status
+                    .INVALID_ARGUMENT
+                    .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES.")
+                    .asRuntimeException()
+                responseObserver!!.onError(e)
+
+            }
+        }catch ( e:HttpClientException) {
             val e = Status
-                .INVALID_ARGUMENT
-                .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES.")
+                .INTERNAL
+                .withDescription("ERROR HTTP")
                 .asRuntimeException()
             responseObserver!!.onError(e)
-            responseObserver.onCompleted()
+        } catch (e: HttpClientResponseException){
+            val errorGrpc = Status
+                .INTERNAL
+                .withDescription(e.localizedMessage)
+                .asRuntimeException()
+            responseObserver!!.onError(errorGrpc)
+        } catch (e:Exception){
+            val errorGrpc = Status
+                .INTERNAL
+                .withDescription(e.localizedMessage)
+                .asRuntimeException()
+            responseObserver!!.onError(errorGrpc)
         }
 
     }
+
+
+
 
     override fun ramdomKeyWordRemove(request: PixRamdomKeyWordDeleteRequest?,responseObserver: StreamObserver<PixRamdomKeyWordDeleteResponse>?,  ) {
 
         var existError: Boolean = false
 
-        if (request!!.keyWord.length == LIMIT_SIZE_KEY_WORD_RAMDOM) {
+        if (request!!.keyWord.length > LIMIT_SIZE_KEY_WORD_RAMDOM) {
             val e = Status
                 .INVALID_ARGUMENT
                 .withDescription("TAMANHO DA CHAVE É MENOR QUE 77 CARACTERES.")
                 .asRuntimeException()
             responseObserver!!.onError(e)
-            responseObserver.onCompleted()
             existError = true
         }
 
@@ -96,7 +134,6 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 .withDescription("CHAVE ALEATÓRIO NÃO EXISTE.")
                 .asRuntimeException()
             responseObserver!!.onError(e)
-            responseObserver.onCompleted()
             existError = true
         }
 

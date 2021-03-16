@@ -16,28 +16,43 @@ service PixKeyWordService {
   rpc phoneKeyWordRemove   (PixPhoneKeyWordRequest) returns (PixPhoneKeyWordResponse) {}
   rpc emailKeyWordRegister (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
   rpc emailKeyWordRemove   (PixEmailKeyWordRequest) returns (PixEmailKeyWordResponse) {}
+}
+
+enum TypeAccount {
+  ACCOUNT_CURRENT= 0;
+  ACCOUNT_DEPOSIT=1;
 
 }
 
-message PixRamdomKeyWordDeleteRequest {
-  string keyWord  = 1;
+message PixRamdomKeyWordRequest {
+  string idInternal = 1;
+  TypeAccount type = 2;
 }
-message  PixRamdomKeyWordDeleteResponse {
-  string message = 1;
-}
-message PixRamdomKeyWordRequest {}
-
 message PixRamdomKeyWordResponse {
   string message = 1;
 }
+message PixRamdomKeyWordDeleteRequest {
+   string keyWord  = 1;
+}
+
+message  PixRamdomKeyWordDeleteResponse {
+  string message = 1;
+}
+
+
+
 message PixCpfWordRequest {
   string cpfKeyWord = 1;
+  string idInternal = 2;
+  TypeAccount type = 3;
 }
 message PixCpfWordResponse {
   string message = 1;
 }
 message PixPhoneKeyWordRequest {
   string phoneKeyWord = 1;
+  string idInternal = 2;
+  TypeAccount type = 3;
 }
 
 message PixPhoneKeyWordResponse {
@@ -46,6 +61,8 @@ message PixPhoneKeyWordResponse {
 
 message PixEmailKeyWordRequest {
   string emailKeyWord = 1;
+  string idInternal = 2;
+  TypeAccount type = 3;
 }
 
 message PixEmailKeyWordResponse {

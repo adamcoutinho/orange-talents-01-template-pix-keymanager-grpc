@@ -15,31 +15,31 @@ import io.micronaut.http.client.annotation.Client
 interface AccountBancoCentralClient {
 
     @Get("/pix/keys")
-    fun findAllPixKeys():HttpResponse<MutableList<PixDetailResponse>>
+    fun findAllPixKeys():HttpResponse<MutableList<CreatePixKeyResponse>>
 
-    @Post("/pix/keys" ) @Produces(value = [MediaType.APPLICATION_XML])
-    fun registerKeyWordPix(@Body pixKeyRequest: CreatePixKeyRequest):HttpResponse<String>
+    @Post("/pix/keys" ) @Produces(value = [MediaType.APPLICATION_XML]) @Consumes(value = [MediaType.APPLICATION_XML])
+    fun registerKeyWordPix(@Body pixKeyRequest: CreatePixKeyRequest):HttpResponse<CreatePixKeyResponse>
 
-//    @Delete("/pix/keys/{key}")
-//    fun deleteKeyWordPix(@PathVariable key:String):HttpResponse<>
-
-
+    @Delete("/pix/keys/{key}")
+    fun deleteKeyWordPix(@PathVariable key:String,):HttpResponse<DeletePixKeyResponse>
 
 }
+
 enum class KeyType {
     CPF,CNPJ,PHONE,EMAIL,RAMDOM
 }
+
 enum class AccountType{
     CACC,SVGS
 }
 
-data class BankAccount(val participante:String,val branch:String,val accountNumber:String, val accountType:AccountType) {}
+data class BankAccount(val participant:String,val branch:String,val accountNumber:String, val accountType:AccountType) {}
 
 enum class Type {
     NATURAL_PERSON ,LEGAL_PERSON
 }
 data class Owner(val type:Type,val name:String,val taxIdNumber:String)
-data class CreatePixKeyRequest (val keyType:KeyType, val key:String,val bankAccountRequest:BankAccount?,val ownerRequest: Owner?)
-data class PixDetailResponse (val keyType:KeyType, val key:String,val bankAccount:BankAccount?,val createAt:String)
-
-
+data class CreatePixKeyRequest (val keyType:KeyType, val key:String,val bankAccount:BankAccount,val owner: Owner)
+data class CreatePixKeyResponse (val keyType:KeyType, val key:String,val bankAccount:BankAccount?,val createdAt:String)
+data class DeletePixKeyRequest(val key:String , val participant:String)
+data class DeletePixKeyResponse(val key:String , val participant:String, val deletedAt:String)

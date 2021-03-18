@@ -21,6 +21,7 @@ import br.com.zup.core.clients.CreatePixKeyRequest
 import br.com.zup.core.clients.DataAccountResponse
 import br.com.zup.core.clients.KeyType
 import br.com.zup.core.clients.Owner
+import br.com.zup.core.clients.CreatePixKeyResponse
 import br.com.zup.core.clients.Type
 import br.com.zup.core.models.CpfPix
 import br.com.zup.core.models.CpfPixRepository
@@ -70,18 +71,18 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         else -> throw Exception("Type Account Unknown")
     }
 
-    private fun newRegisterKeyWordBancoCentral(keyPix: String,dataClientResponse: DataAccountResponse) {
-        this.accountsBancoCentralClient.registerKeyWordPix(
+    private fun newRegisterKeyWordBancoCentral(keyPix: String,dataClientResponse: DataAccountResponse) :HttpResponse<CreatePixKeyResponse> {
+     return    this.accountsBancoCentralClient.registerKeyWordPix(
             CreatePixKeyRequest(
             keyType = KeyType.CPF,
             key = keyPix,
-            bankAccountRequest =   BankAccount(
-                participante = dataClientResponse.instituicao.ispb,
+            bankAccount =   BankAccount(
+                participant = dataClientResponse.instituicao.ispb,
                 branch = dataClientResponse.agencia,
                 accountNumber = dataClientResponse.numero,
                 AccountType.CACC
             )  ,
-            ownerRequest = Owner(
+            owner = Owner(
                 type = Type.NATURAL_PERSON,
                 name = dataClientResponse.titular.nome,
                 taxIdNumber = dataClientResponse.titular.cpf
@@ -125,6 +126,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                                 .asRuntimeException()
                             responseObserver!!.onError(e)
                         }
+
                         either.isRight -> {
 
                             newRegisterKeyWordBancoCentral(keyWordRamdomObject.keyword, dataClientResponse.body()!!)
@@ -200,6 +202,8 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
         if (existError.not()) {
             val keyWordRamdomPix = this.keyWordRamdomPixRepository.find(keyword = request.keyWord)
+
+
 
             keyWordRamdomPixRepository.delete(keyWordRamdomPix)
 

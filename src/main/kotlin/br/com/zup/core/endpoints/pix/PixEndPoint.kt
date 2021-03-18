@@ -2,9 +2,6 @@ package br.com.zup.core.endpoints.pix
 
 import am.ik.yavi.builder.ValidatorBuilder
 import am.ik.yavi.builder.konstraint
-import am.ik.yavi.core.ConstraintViolations
-import am.ik.yavi.core.ConstraintViolationsException
-import am.ik.yavi.core.Validator
 import br.com.zup.PixCpfWordRequest
 import br.com.zup.PixCpfWordResponse
 import br.com.zup.PixEmailKeyWordRequest
@@ -16,7 +13,15 @@ import br.com.zup.PixRamdomKeyWordDeleteRequest
 import br.com.zup.PixRamdomKeyWordDeleteResponse
 import br.com.zup.PixRamdomKeyWordRequest
 import br.com.zup.PixRamdomKeyWordResponse
-import br.com.zup.core.clients.AccountsClient
+import br.com.zup.core.clients.AccountBancoCentralClient
+import br.com.zup.core.clients.AccountType
+import br.com.zup.core.clients.AccountsItauClient
+import br.com.zup.core.clients.BankAccount
+import br.com.zup.core.clients.CreatePixKeyRequest
+import br.com.zup.core.clients.DataAccountResponse
+import br.com.zup.core.clients.KeyType
+import br.com.zup.core.clients.Owner
+import br.com.zup.core.clients.Type
 import br.com.zup.core.models.CpfPix
 import br.com.zup.core.models.CpfPixRepository
 import br.com.zup.core.models.EmailPix
@@ -27,13 +32,12 @@ import br.com.zup.core.models.PhonePix
 import br.com.zup.core.models.PhonePixRepository
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import org.slf4j.LoggerFactory
-import java.lang.RuntimeException
-import java.util.function.Function
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.validation.ConstraintViolationException
 
 @Singleton
 class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
@@ -53,7 +57,10 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     private lateinit var cpfPixRepository: CpfPixRepository;
 
     @Inject
-    private lateinit var accountsClient: AccountsClient
+    private lateinit var accountsClient: AccountsItauClient
+
+    @Inject
+    private lateinit var accountsBancoCentralClient: AccountBancoCentralClient
 
     private val LIMIT_SIZE_KEY_WORD_RAMDOM: Int = 77
 
@@ -63,12 +70,30 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         else -> throw Exception("Type Account Unknown")
     }
 
+    private fun newRegisterKeyWordBancoCentral(keyPix: String,dataClientResponse: DataAccountResponse) {
+        this.accountsBancoCentralClient.registerKeyWordPix(
+            CreatePixKeyRequest(
+            keyType = KeyType.CPF,
+            key = keyPix,
+            bankAccountRequest =   BankAccount(
+                participante = dataClientResponse.instituicao.ispb,
+                branch = dataClientResponse.agencia,
+                accountNumber = dataClientResponse.numero,
+                AccountType.CACC
+            )  ,
+            ownerRequest = Owner(
+                type = Type.NATURAL_PERSON,
+                name = dataClientResponse.titular.nome,
+                taxIdNumber = dataClientResponse.titular.cpf
+            )
+        )
+        )
+    }
+
     override fun ramdomKeyWordRegister(request: PixRamdomKeyWordRequest?, responseObserver: StreamObserver<PixRamdomKeyWordResponse>?, ) {
         try {
 
-            val keyWordRamdom =""
-//            val keyWordRamdom =UUID.randomUUID().toString()
-
+            val keyWordRamdom = UUID.randomUUID().toString()
 
             if (keyWordRamdom.length <= LIMIT_SIZE_KEY_WORD_RAMDOM) {
 
@@ -76,31 +101,49 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
                 val keyWordRamdomObject = KeyWordRamdomPix(keyword = keyWordRamdom, idInternal = dataClientResponse.body()!!.titular.id ,type = dataClientResponse.body()!!.tipo)
 
-
-                val validator = ValidatorBuilder
-                    .of<KeyWordRamdomPix>()
+                val either  = ValidatorBuilder.of<KeyWordRamdomPix>()
                     .konstraint(KeyWordRamdomPix::keyword)
                     {
                         notBlank().message("informe a chave.")
-                    }.build()
-
-
-                validator.validate(keyWordRamdomObject)
-
-
-
-
-
-
-                this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
-
-                val keyWordRamdomResponse = PixRamdomKeyWordResponse
-                    .newBuilder()
-                    .setMessage(keyWordRamdomObject.keyword)
+                    }
+                    .konstraint(KeyWordRamdomPix::idInternal)
+                    {
+                        notBlank().message("informe código do titular da conta.")
+                    }
+                    .konstraint(KeyWordRamdomPix::type)
+                    {
+                      notBlank().message("inform  tipo da conta.")
+                    }
                     .build()
-                responseObserver!!.onNext(keyWordRamdomResponse)
+                    .validateToEither(keyWordRamdomObject)
 
-                responseObserver.onCompleted()
+                    when {
+                        either.isLeft ->{
+                            val e = Status
+                                .INVALID_ARGUMENT
+                                .withDescription(either.left().get().get(0).message())
+                                .asRuntimeException()
+                            responseObserver!!.onError(e)
+                        }
+                        either.isRight -> {
+
+                            newRegisterKeyWordBancoCentral(keyWordRamdomObject.keyword, dataClientResponse.body()!!)
+
+                            this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
+
+                            val keyWordRamdomResponse = PixRamdomKeyWordResponse
+                                .newBuilder()
+                                .setMessage(keyWordRamdomObject.keyword)
+                                .build()
+
+                            responseObserver!!.onNext(keyWordRamdomResponse)
+
+                            responseObserver.onCompleted()
+
+                        }
+                    }
+
+
 
                 logger.info("{KEY_WORD_RAMDOM} -> GENERATED")
 
@@ -112,15 +155,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 responseObserver!!.onError(e)
 
             }
-        } catch (errorConstraintViolation:ConstraintViolationException){
-            val e = Status
-                .INVALID_ARGUMENT
-                .withDescription(errorConstraintViolation.localizedMessage)
-                .asRuntimeException()
-            responseObserver!!.onError(e)
-        }
-
-        catch (e: HttpClientResponseException){
+        } catch (e: HttpClientResponseException){
             val errorGrpc = Status
                 .INTERNAL
                 .withDescription(e.localizedMessage)
@@ -129,12 +164,14 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
         } catch (e:Exception){
             val errorGrpc = Status
                 .NOT_FOUND
-                .withDescription("Chave não encontrada.")
+                .withDescription("Erro Inesperado.")
                 .asRuntimeException()
             responseObserver!!.onError(errorGrpc)
         }
 
     }
+
+
 
 
     override fun ramdomKeyWordRemove(request: PixRamdomKeyWordDeleteRequest?,responseObserver: StreamObserver<PixRamdomKeyWordDeleteResponse>?,  ) {

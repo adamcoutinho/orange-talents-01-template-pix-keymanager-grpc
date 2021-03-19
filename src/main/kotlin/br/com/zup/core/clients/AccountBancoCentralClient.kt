@@ -17,12 +17,11 @@ interface AccountBancoCentralClient {
     @Get("/pix/keys")
     fun findAllPixKeys():HttpResponse<MutableList<CreatePixKeyResponse>>
 
-    @Post("/pix/keys" ) @Produces(value = [MediaType.APPLICATION_XML]) @Consumes(value = [MediaType.APPLICATION_XML])
+    @Post("/pix/keys" ) @Produces(value = [MediaType.APPLICATION_XML])
     fun registerKeyWordPix(@Body pixKeyRequest: CreatePixKeyRequest):HttpResponse<CreatePixKeyResponse>
 
-    @Delete("/pix/keys/{key}")
-    fun deleteKeyWordPix(@PathVariable key:String,):HttpResponse<DeletePixKeyResponse>
-
+    @Delete("/pix/keys/{key}") @Produces(value = [MediaType.APPLICATION_XML])  @Consumes(value = [MediaType.APPLICATION_XML])
+    fun deleteKeyWordPix(@PathVariable key:String, @QueryValue @Body deletePixKeyRequest:  DeletePixKeyRequest):HttpResponse<DeletePixKeyResponse>
 }
 
 enum class KeyType {

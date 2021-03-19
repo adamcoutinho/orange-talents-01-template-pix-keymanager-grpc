@@ -11,7 +11,14 @@ import javax.validation.constraints.Size
 
 @Entity
 @Table(name = "phone_pix")
-class PhonePix (@field:NotBlank(message = "informe o telefone de contato.") @field:Size(min=14,max=14,message = "informe o telefone.") val phone:String):Pix {
+class PhonePix(
+    @field:NotBlank(message = "informe o telefone de contato.") @field:Size(min = 14,
+        max = 14,
+        message = "informe o telefone.") val phone: String,
+    val clientId: String,
+    val type: String,
+    val ispb: String
+) : Pix {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequence_phone_pix")
     @SequenceGenerator(name = "sequence_phone_pix", sequenceName = "sq_phone_pix")

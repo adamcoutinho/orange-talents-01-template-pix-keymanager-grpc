@@ -12,4 +12,7 @@ interface PhonePixRepository :CrudRepository<PhonePix,Long> {
     @Executable
     fun existsByPhone(phone: String?):Boolean
 
+    @Executable
+    fun existsByClientId(clientId: String?):Boolean
+
 }

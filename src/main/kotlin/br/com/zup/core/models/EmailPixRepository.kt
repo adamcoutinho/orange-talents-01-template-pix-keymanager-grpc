@@ -13,4 +13,7 @@ interface EmailPixRepository:CrudRepository<EmailPix,Long> {
     @Executable
     fun existsByEmail(email: String): Boolean
 
+    @Executable
+    fun existsByClientId(clientId: String): Boolean
+
 }

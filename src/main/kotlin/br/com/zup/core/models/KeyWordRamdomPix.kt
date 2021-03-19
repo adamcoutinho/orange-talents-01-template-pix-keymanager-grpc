@@ -16,7 +16,8 @@ data class KeyWordRamdomPix(
     @field:Size(max = 77, message = "tamanho máximo da chave é 77 caracateres.")
     val keyword: String,
     val type: String,
-    val idInternal: String,
+    val ispb:String,
+    val clientId: String,
 ) : Pix {
 
     @Id

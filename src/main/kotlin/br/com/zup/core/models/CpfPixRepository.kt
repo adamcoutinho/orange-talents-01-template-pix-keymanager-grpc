@@ -12,4 +12,6 @@ interface CpfPixRepository :CrudRepository<CpfPix, Long> {
     @Executable
     fun existsByCpf(cpf:String):Boolean
 
+    @Executable
+    fun existsByClientId(clientId:String):Boolean
 }

@@ -10,8 +10,16 @@ interface CpfPixRepository :CrudRepository<CpfPix, Long> {
     fun find(cpf:String):CpfPix
 
     @Executable
+    fun find(clientId:String, internal: String):CpfPix
+
+    @Executable
     fun existsByCpf(cpf:String):Boolean
 
     @Executable
     fun existsByClientId(clientId:String):Boolean
+
+    @Executable
+    fun findByClientId(clientid: String?):CpfPix
+
+    
 }

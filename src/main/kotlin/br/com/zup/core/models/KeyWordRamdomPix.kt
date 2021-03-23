@@ -1,5 +1,7 @@
 package br.com.zup.core.models
 
+import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -25,4 +27,7 @@ data class KeyWordRamdomPix(
     @SequenceGenerator(name = "sequence_key_word_ramdom_pix", sequenceName = "sq_key_word_ramdom_pix")
     var id: Long? = null
 
+    var internal:String  = UUID.randomUUID().toString()
+
+    var createAt: LocalDateTime = LocalDateTime.now()
 }

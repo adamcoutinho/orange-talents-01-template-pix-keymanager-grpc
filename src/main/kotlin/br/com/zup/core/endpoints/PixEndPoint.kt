@@ -1,4 +1,4 @@
-package br.com.zup.core.endpoints.pix
+package br.com.zup.core.endpoints
 
 import am.ik.yavi.builder.ValidatorBuilder
 import am.ik.yavi.builder.konstraint
@@ -86,7 +86,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                     participant = dataClientResponse.instituicao.ispb,
                     branch = dataClientResponse.agencia,
                     accountNumber = dataClientResponse.numero,
-                    AccountType.CACC
+                    accountType =  AccountType.CACC
                 ),
                 owner = Owner(
                     type = Type.NATURAL_PERSON,
@@ -159,8 +159,8 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
                     either.isRight -> {
 
-                        newRegisterKeyWordBancoCentral(keyWordRamdomObject.keyword, accountCLient.body()!!)
-
+                      val detail =   newRegisterKeyWordBancoCentral(keyWordRamdomObject.keyword, accountCLient.body()!!)
+                        println(detail.body()!!.key)
                         this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
 
                         val keyWordRamdomResponse = PixRamdomKeyWordResponse

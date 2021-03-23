@@ -9,10 +9,10 @@ import io.micronaut.http.client.annotation.Client
 
     @Client("http://localhost:9091/api/v1")
     interface AccountsItauClient {
-        @Get("/private/contas/todas")
-        fun findAllAccounts():HttpResponse<MutableList<DataAccountResponse>>
+
         @Get("/clientes/{clientId}/contas")
         fun findAccountByIdClient(@PathVariable("clientId") id:String ,@QueryValue tipo:String):HttpResponse<DataAccountResponse>
+
         @Get("/clientes/{clientId}")
         fun findClientByIdClient(@PathVariable("clientId") id:String): HttpResponse<DataClientResponse>
     }

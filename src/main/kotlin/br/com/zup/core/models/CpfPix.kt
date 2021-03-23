@@ -1,5 +1,7 @@
 package br.com.zup.core.models
 
+import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -16,4 +18,8 @@ class CpfPix (@field:NotBlank(message = "informe um cpf")  val cpf:String,  val 
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequence_cpf_pix")
     @SequenceGenerator(name = "sequence_cpf_pix", sequenceName = "sq_cpf_pix")
     var id: Long? = null
+
+    var internal:String  = UUID.randomUUID().toString()
+
+    var createAt:LocalDateTime  = LocalDateTime.now()
 }

@@ -17,6 +17,9 @@ interface AccountBancoCentralClient {
     @Get("/pix/keys")
     fun findAllPixKeys():HttpResponse<MutableList<CreatePixKeyResponse>>
 
+    @Get("/pix/keys/{key}")
+    fun findAccountByKeyWord(@PathVariable("key") key:String):HttpResponse<CreatePixKeyResponse>
+
     @Post("/pix/keys" ) @Produces(value = [MediaType.APPLICATION_XML])
     fun registerKeyWordPix(@Body pixKeyRequest: CreatePixKeyRequest):HttpResponse<CreatePixKeyResponse>
 

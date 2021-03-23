@@ -11,9 +11,15 @@ interface EmailPixRepository:CrudRepository<EmailPix,Long> {
     fun find(email:String?): EmailPix
 
     @Executable
+    fun find(clientId:String, internal: String):EmailPix
+
+    @Executable
     fun existsByEmail(email: String): Boolean
 
     @Executable
     fun existsByClientId(clientId: String): Boolean
 
+
+    @Executable
+    fun findByClientId(clientId:String): EmailPix
 }

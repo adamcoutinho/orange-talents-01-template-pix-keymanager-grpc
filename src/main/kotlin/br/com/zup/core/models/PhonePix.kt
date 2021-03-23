@@ -1,5 +1,7 @@
 package br.com.zup.core.models
 
+import java.time.LocalDateTime
+import java.util.*
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -23,5 +25,9 @@ class PhonePix(
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequence_phone_pix")
     @SequenceGenerator(name = "sequence_phone_pix", sequenceName = "sq_phone_pix")
     var id: Long? = null
+
+    var internal:String  = UUID.randomUUID().toString()
+
+    var createAt: LocalDateTime = LocalDateTime.now()
 
 }

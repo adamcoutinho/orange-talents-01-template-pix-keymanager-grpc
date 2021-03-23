@@ -10,9 +10,15 @@ interface PhonePixRepository :CrudRepository<PhonePix,Long> {
     fun find(phone: String?): PhonePix
 
     @Executable
+    fun find(clientId:String, internal: String):PhonePix
+
+    @Executable
     fun existsByPhone(phone: String?):Boolean
 
     @Executable
     fun existsByClientId(clientId: String?):Boolean
+
+    @Executable
+    fun findByClientId(clientid: String?):PhonePix
 
 }

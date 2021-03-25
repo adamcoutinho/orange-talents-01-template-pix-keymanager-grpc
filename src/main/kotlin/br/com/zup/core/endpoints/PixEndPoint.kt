@@ -75,12 +75,13 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
     }
 
     private fun newRegisterKeyWordBancoCentral(
+        keyType: KeyType,
         keyPix: String,
         dataClientResponse: DataAccountResponse,
     ): HttpResponse<CreatePixKeyResponse> {
         return this.accountsBancoCentralClient.registerKeyWordPix(
             CreatePixKeyRequest(
-                keyType = KeyType.CPF,
+                keyType = keyType,
                 key = keyPix,
                 bankAccount = BankAccount(
                     participant = dataClientResponse.instituicao.ispb,
@@ -159,7 +160,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
 
                     either.isRight -> {
 
-                      val detail =   newRegisterKeyWordBancoCentral(keyWordRamdomObject.keyword, accountCLient.body()!!)
+                      val detail =   newRegisterKeyWordBancoCentral(KeyType.RANDOM,keyWordRamdomObject.keyword, accountCLient.body()!!)
                         println(detail.body()!!.key)
                         this.keyWordRamdomPixRepository.save(keyWordRamdomObject)
 
@@ -316,8 +317,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                     }
                     either.isRight -> {
 
-                            newRegisterKeyWordBancoCentral(keyPix = cpfPixObject.cpf,
-                                dataClientResponse = accountClient.body()!!)
+                            newRegisterKeyWordBancoCentral(keyType =  KeyType.CPF,keyPix = cpfPixObject.cpf,dataClientResponse = accountClient.body()!!)
 
                             cpfPixRepository.save(cpfPixObject)
 
@@ -485,8 +485,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 }
                 either.isRight -> {
 
-                        newRegisterKeyWordBancoCentral(keyPix = phoneObject.phone,
-                            dataClientResponse = accountClient.body()!!)
+                        newRegisterKeyWordBancoCentral(keyType = KeyType.PHONE,keyPix = phoneObject.phone,dataClientResponse = accountClient.body()!!)
 
                         this.phoneRepository.save(phoneObject)
 
@@ -653,8 +652,7 @@ class PixEndPoint : PixKeyWordServiceGrpc.PixKeyWordServiceImplBase() {
                 }
                 either.isRight -> {
 
-                        newRegisterKeyWordBancoCentral(keyPix = emailObject.email,
-                            dataClientResponse = accountClient.body()!!)
+                        newRegisterKeyWordBancoCentral(KeyType.EMAIL,keyPix = emailObject.email,dataClientResponse = accountClient.body()!!)
 
                         this.emailPixRepository.save(emailObject)
 

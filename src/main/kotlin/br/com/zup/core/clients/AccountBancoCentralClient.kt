@@ -28,7 +28,7 @@ interface AccountBancoCentralClient {
 }
 
 enum class KeyType {
-    CPF,CNPJ,PHONE,EMAIL,RAMDOM
+    CPF,PHONE,EMAIL,RANDOM
 }
 
 enum class AccountType{

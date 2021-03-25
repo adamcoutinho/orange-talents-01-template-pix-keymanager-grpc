@@ -16,9 +16,12 @@ class PixAllKeysSearchEndPoint :FindAllPixKeyServiceGrpc.FindAllPixKeyServiceImp
 
     override fun findAll(request: SearchRequest, responseObserver: StreamObserver<SearchResponse>) {
 
-        service.find(request)
-
-
+        val keys =  SearchResponse.newBuilder()
+            .addAllClientPix(service.find(request))
+            .build()
+        responseObserver.onNext(keys)
+        responseObserver.onCompleted()
 
     }
 }
+
